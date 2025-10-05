@@ -13,7 +13,8 @@ import CalendarPage from '@/pages/CalendarPage'
 import AdminPage from '@/pages/AdminPage'
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const isLoading = useAuthStore((state) => state.isLoading)
 
   if (isLoading) {
     return (

@@ -12,7 +12,7 @@ psycopg2-binary==2.9.9
 # Redis & Job Queue
 redis==5.0.1
 rq==1.15.1
-rq-dashboard==0.6.4
+rq-dashboard==0.8.5
 
 # HTTP Client
 httpx==0.25.2
@@ -22,7 +22,7 @@ aiofiles==23.2.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
-cryptography==41.0.8
+cryptography==46.0.2
 
 # Utilities
 python-dateutil==2.8.2
