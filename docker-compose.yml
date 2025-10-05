@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: sd_browser
+      POSTGRES_USER: sd_user
+      POSTGRES_PASSWORD: sd_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sd_user -d sd_browser"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache & Job Queue
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - APP_ENV=development
+      - DB_URL=postgresql://sd_user:sd_password@db:5432/sd_browser
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - ENCRYPTION_KEY=dev-encryption-key-32-chars-long
+      - SD_API_BASE=https://json.schedulesdirect.org/20141201
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/venv
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # RQ Worker for Background Jobs
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - APP_ENV=development
+      - DB_URL=postgresql://sd_user:sd_password@db:5432/sd_browser
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - ENCRYPTION_KEY=dev-encryption-key-32-chars-long
+      - SD_API_BASE=https://json.schedulesdirect.org/20141201
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/venv
+    command: python -m app.worker
+    deploy:
+      replicas: 2
+
+  # React Frontend
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - api
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - api
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:
