@@ -26,7 +26,10 @@ A production-ready web application that integrates with Schedules Direct to fetc
 1. **Prerequisites**
    ```bash
    docker --version  # Docker 20.10+
-   docker-compose --version  # 2.0+
+   # Either Docker Compose v2 (recommended):
+   docker compose version
+   # Or Docker Compose v1:
+   docker-compose --version
    ```
 
 2. **Clone and Setup**
@@ -39,11 +42,22 @@ A production-ready web application that integrates with Schedules Direct to fetc
 
 3. **Start Services**
    ```bash
+   # The setup script will automatically detect your Docker Compose version
+   ./setup.sh
+   
+   # Or manually with Docker Compose v2:
+   docker compose up -d
+   
+   # Or manually with Docker Compose v1:
    docker-compose up -d
    ```
 
 4. **Initialize Database**
    ```bash
+   # Docker Compose v2:
+   docker compose exec api alembic upgrade head
+   
+   # Docker Compose v1:
    docker-compose exec api alembic upgrade head
    ```
 

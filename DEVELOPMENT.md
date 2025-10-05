@@ -108,39 +108,52 @@ The SD Browser application follows a modern full-stack architecture:
 
 ### Starting Development
 ```bash
-# Initial setup
+# Initial setup (automatically detects Docker Compose version)
 ./setup.sh
 
-# Start with logs
+# Start with logs (Docker Compose v2)
+docker compose up
+# Or (Docker Compose v1)
 docker-compose up
 
 # Or start in background
-docker-compose up -d
-docker-compose logs -f api web
+docker compose up -d  # v2
+docker-compose up -d  # v1
+
+# View logs
+docker compose logs -f api web  # v2
+docker-compose logs -f api web  # v1
 ```
 
 ### Database Operations
 ```bash
-# Create new migration
+# Create new migration (Docker Compose v2)
+docker compose exec api alembic revision --autogenerate -m "description"
+# Or (Docker Compose v1)
 docker-compose exec api alembic revision --autogenerate -m "description"
 
 # Apply migrations
-docker-compose exec api alembic upgrade head
+docker compose exec api alembic upgrade head  # v2
+docker-compose exec api alembic upgrade head  # v1
 
 # Database shell
-docker-compose exec db psql -U sd_user -d sd_browser
+docker compose exec db psql -U sd_user -d sd_browser  # v2
+docker-compose exec db psql -U sd_user -d sd_browser  # v1
 ```
 
 ### Testing
 ```bash
 # Backend tests
-docker-compose exec api pytest
+docker compose exec api pytest  # v2
+docker-compose exec api pytest  # v1
 
 # Frontend tests
-docker-compose exec web npm test
+docker compose exec web npm test  # v2
+docker-compose exec web npm test  # v1
 
 # E2E tests (when implemented)
-docker-compose exec web npx playwright test
+docker compose exec web npx playwright test  # v2
+docker-compose exec web npx playwright test  # v1
 ```
 
 ## API Integration Notes

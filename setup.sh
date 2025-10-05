@@ -14,9 +14,14 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is required but not installed"
-    exit 1
+# ---- Compose detection (v1 vs v2) ----
+if docker compose version >/dev/null 2>&1; then
+  DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE="docker-compose"
+else
+  echo "❌ Docker Compose is required. Install compose v2 (docker-compose-plugin) or docker-compose v1."
+  exit 1
 fi
 
 echo "✅ Prerequisites check passed"
@@ -36,24 +41,24 @@ fi
 
 # Build and start services
 echo "🏗️  Building Docker images..."
-docker-compose build
+$DOCKER_COMPOSE build
 
 echo "🚀 Starting services..."
-docker-compose up -d db redis
+$DOCKER_COMPOSE up -d db redis
 
 echo "⏳ Waiting for database to be ready..."
 sleep 10
 
 # Run database migrations
 echo "🗄️  Running database migrations..."
-docker-compose run --rm api alembic upgrade head
+$DOCKER_COMPOSE run --rm api alembic upgrade head
 
 echo "📦 Installing frontend dependencies..."
-docker-compose run --rm web npm install
+$DOCKER_COMPOSE run --rm web npm install
 
 # Start all services
 echo "🌟 Starting all services..."
-docker-compose up -d
+$DOCKER_COMPOSE up -d
 
 # Show status
 echo ""
@@ -65,10 +70,10 @@ echo "   • API Docs: http://localhost:8000/docs"
 echo "   • Health Check: http://localhost:8000/health"
 echo ""
 echo "🛠️  Useful commands:"
-echo "   • View logs: docker-compose logs -f"
-echo "   • Stop services: docker-compose down"
-echo "   • Rebuild: docker-compose build"
-echo "   • Database shell: docker-compose exec db psql -U sd_user -d sd_browser"
+echo "   • View logs: $DOCKER_COMPOSE logs -f"
+echo "   • Stop services: $DOCKER_COMPOSE down"
+echo "   • Rebuild: $DOCKER_COMPOSE build"
+echo "   • Database shell: $DOCKER_COMPOSE exec db psql -U sd_user -d sd_browser"
 echo ""
 echo "📚 Next steps:"
 echo "   1. Open http://localhost:3000 in your browser"
