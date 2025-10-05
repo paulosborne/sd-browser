@@ -42,9 +42,10 @@ services:
       - APP_ENV=development
       - DB_URL=postgresql://sd_user:sd_password@db:5432/sd_browser
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=dev-secret-key-change-in-production
-      - ENCRYPTION_KEY=dev-encryption-key-32-chars-long
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - SD_API_BASE=https://json.schedulesdirect.org/20141201
+      - SD_APPID=${SD_APPID}
     ports:
       - "8000:8000"
     depends_on:
@@ -71,9 +72,10 @@ services:
       - APP_ENV=development
       - DB_URL=postgresql://sd_user:sd_password@db:5432/sd_browser
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=dev-secret-key-change-in-production
-      - ENCRYPTION_KEY=dev-encryption-key-32-chars-long
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - SD_API_BASE=https://json.schedulesdirect.org/20141201
+      - SD_APPID=${SD_APPID}
     depends_on:
       db:
         condition: service_healthy
